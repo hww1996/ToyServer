@@ -4,9 +4,13 @@
 
 下次应该会改变一些算法，如使用kmp算法来匹配字符串等。修正一些bug等等。
 
+#### 编译:
+
+	$ make
+
 #### 使用：
 
-在781行的url_maps中添加map_item即可
+在`include/source.h`中的url_maps中添加map_item即可
 
 #### 示例：
 
