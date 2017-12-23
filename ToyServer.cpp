@@ -514,12 +514,8 @@ public:
             close(output[0]);
             dup2(output[1],STDOUT_FILENO);
             dup2(input[0],STDIN_FILENO);
-            sigset_t sig_old,sig_new,sig_zero;
-            sigemptyset(&sig_old);
-            sigemptyset(&sig_new);
-            sigemptyset(&sig_zero);
-            sigaddset(&sig_new,SIGUSR1);
-            sigprocmask(SIG_BLOCK,&sig_new,&sig_old);
+            close(input[0]);
+            close(output[1]);
             char *exec_name= this->_name.c_str();
             char *exec_path_name[2]={exec_name,NULL};
             unordered_set<CharContent,hashFunc,EqualFunc> cgi_key{
@@ -542,6 +538,7 @@ public:
                     "HTTP_COOKIE"
             };
             char *env[20]={NULL};
+            char env_temp[20][2048]={'\0'};
             size_t env_index=0;
             for(auto iter=cgi_key.begin();iter!=cgi_key.end();++iter){
                 CharContent key=*iter;
@@ -549,20 +546,13 @@ public:
                 value=make_environment(request,key);
                 key.append("=");
                 key.append(value);
-                env[env_index]=new char [key.length()+1];
+                env[env_index]=env_temp[env_index];
                 strncpy(env[env_index],key.c_str(),key.length());
                 env[env_index][key.length()]='\0';
                 env_index++;
             }
             execve(this->_path.c_str(),exec_path_name,env);
-            for(size_t i=0;i<cgi_key.size();i++){
-                delete[] env[i];
-            }
-            sigsuspend(&sig_zero);
-            sigprocmask(SIG_SETMASK,&sig_old,NULL);
-            close(input[0]);
-            close(output[1]);
-            exit(0);
+            exit(-1);
         }
         close(input[0]);
         close(output[1]);
@@ -605,11 +595,13 @@ public:
             memset(buf,'\0',sizeof(buf));
         }
         e.make_ctl(EPOLL_CTL_DEL,output[0],EPOLLIN);
-        kill(pid,SIGUSR1);
-        waitpid(pid,NULL,0);
+        int cgi_exec_ret_num=-1;
+        waitpid(pid,&cgi_exec_ret_num,0);
         close(input[1]);
         close(output[0]);
         if(get_error)
+            return false;
+        if(WIFEXITED(cgi_exec_ret_num)==0)
             return false;
         //to do:judge the cgi response and get the response;
         return this->CheckCGI(ans,response);
@@ -779,8 +771,8 @@ class source{
 public:
     source(int _connfd):_conndfd(_connfd),
                         url_maps({
-                                         map_item("/static","~/ServerContent",1),
-                                         map_item("/","~/ServerContent/cgi",0)
+                                         map_item("/static","/home/hww/ServerContent",1),
+                                         map_item("/","/home/hww/ServerContent/cgi",0)
                                  }){}
     /*
      * 0 ok
@@ -1009,28 +1001,44 @@ private:
             response_code_map;
 };
 
-void *response_to_client(const CharContent &content,int connfd){
-    int step=1024;
-    int left_size=content.length();
-    const char *content_ptr=content.c_str();
-    while(left_size>0){
-        if(left_size<step){
-            step=left_size;
-        }
-        write(connfd,content_ptr,step);
-        content_ptr+=step;
-        left_size-=step;
-    }
-    close(connfd);
-    return NULL;
-}
-
-
 void log(const char *buf){
     size_t n=strlen(buf);
     write(STDOUT_FILENO,buf,n);
     return;
 }
+
+void *response_to_client(const CharContent &content,int connfd){
+    int step=1024;
+    int left_size=content.length();
+    const char *content_ptr=content.c_str();
+    Epoll e(1);
+    e.make_ctl(EPOLL_CTL_ADD,connfd,EPOLLOUT);
+    int epoll_fd=e.get_epoll_fd();
+    epoll_event event_ret;
+    int ret_num=-1;
+    while(left_size>0){
+        ret_num=epoll_wait(epoll_fd,&event_ret,1,15000);
+        if(ret_num<1){
+            break;
+        }
+        int ret_fd=event_ret.data.fd;
+        if(ret_fd==connfd&&event_ret.events&EPOLLOUT){
+            if(left_size<step){
+                step=left_size;
+            }
+            ssize_t write_ret_num=-1;
+            write_ret_num=write(connfd,content_ptr,step);
+            if(write_ret_num<=0){
+                break;
+            }
+            content_ptr+=step;
+            left_size-=step;
+        }
+    }
+    close(connfd);
+    return NULL;
+}
+
 
 void *handle_accept(void *arg){
     int *ptr=(int *)arg;
@@ -1051,7 +1059,7 @@ void *handle_accept(void *arg){
     CharContent ret_request;
     char buf[1024]={'\0'};
     while(true){
-        ret_num=epoll_wait(epoll_fd,&event_ret,1,3000);
+        ret_num=epoll_wait(epoll_fd,&event_ret,1,15000);
         if(ret_num<1){
             break;
         }
@@ -1081,7 +1089,7 @@ void *handle_accept(void *arg){
     if(read_size<0){
         CharContent res_content(http_response.response_content(CharContent("500")));
         char v_log[200]={'\0'};
-        snprintf(v_log,sizeof(v_log),"ret_num %lu\n",read_size);
+        snprintf(v_log,sizeof(v_log),"read_size %lu\n",read_size);
         log(v_log);
         return response_to_client(res_content,connfd);
     }
