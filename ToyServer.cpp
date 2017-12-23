@@ -771,8 +771,8 @@ class source{
 public:
     source(int _connfd):_conndfd(_connfd),
                         url_maps({
-                                         map_item("/static","/home/hww/ServerContent",1),
-                                         map_item("/","/home/hww/ServerContent/cgi",0)
+                                         map_item("/static","~/ServerContent",1),
+                                         map_item("/","~/ServerContent/cgi",0)
                                  }){}
     /*
      * 0 ok
