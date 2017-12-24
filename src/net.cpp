@@ -17,17 +17,34 @@ void *response_to_client(const CharContent &content,int connfd){
     int step=1024;
     int left_size=content.length();
     const char *content_ptr=content.c_str();
+    Epoll e(1);
+    e.make_ctl(EPOLL_CTL_ADD,connfd,EPOLLOUT);
+    int epoll_fd=e.get_epoll_fd();
+    epoll_event event_ret;
+    int ret_num=-1;
     while(left_size>0){
-        if(left_size<step){
-            step=left_size;
+        ret_num=epoll_wait(epoll_fd,&event_ret,1,15000);
+        if(ret_num<1){
+            break;
         }
-        write(connfd,content_ptr,step);
-        content_ptr+=step;
-        left_size-=step;
+        int ret_fd=event_ret.data.fd;
+        if(ret_fd==connfd&&event_ret.events&EPOLLOUT){
+            if(left_size<step){
+                step=left_size;
+            }
+            ssize_t write_ret_num=-1;
+            write_ret_num=write(connfd,content_ptr,step);
+            if(write_ret_num<=0){
+                break;
+            }
+            content_ptr+=step;
+            left_size-=step;
+        }
     }
     close(connfd);
     return NULL;
 }
+
 
 
 void log(const char *buf){

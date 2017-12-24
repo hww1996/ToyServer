@@ -34,12 +34,8 @@ bool CGI::execv_cgi(Request request,Response *response){
 		close(output[0]);
 		dup2(output[1],STDOUT_FILENO);
 		dup2(input[0],STDIN_FILENO);
-		sigset_t sig_old,sig_new,sig_zero;
-		sigemptyset(&sig_old);
-		sigemptyset(&sig_new);
-		sigemptyset(&sig_zero);
-		sigaddset(&sig_new,SIGUSR1);
-		sigprocmask(SIG_BLOCK,&sig_new,&sig_old);
+        close(output[1]);
+        close(input[0]);
 		char *exec_name= this->_name.c_str();
 		char *exec_path_name[2]={exec_name,NULL};
 		unordered_set<CharContent,hashFunc,EqualFunc> cgi_key{
@@ -62,27 +58,21 @@ bool CGI::execv_cgi(Request request,Response *response){
 				"HTTP_COOKIE"
 		};
 		char *env[20]={NULL};
+        char env_temp[20][2048]={'\0'};
 		size_t env_index=0;
 		for(auto iter=cgi_key.begin();iter!=cgi_key.end();++iter){
-			CharContent key=*iter;
-			CharContent value="";
-			value=make_environment(request,key);
-			key.append("=");
-			key.append(value);
-			env[env_index]=new char [key.length()+1];
-			strncpy(env[env_index],key.c_str(),key.length());
-			env[env_index][key.length()]='\0';
-			env_index++;
+            CharContent key=*iter;
+            CharContent value="";
+            value=make_environment(request,key);
+            key.append("=");
+            key.append(value);
+            env[env_index]=env_temp[env_index];
+            strncpy(env[env_index],key.c_str(),key.length());
+            env[env_index][key.length()]='\0';
+            env_index++;
 		}
 		execve(this->_path.c_str(),exec_path_name,env);
-		for(size_t i=0;i<cgi_key.size();i++){
-			delete[] env[i];
-		}
-		sigsuspend(&sig_zero);
-		sigprocmask(SIG_SETMASK,&sig_old,NULL);
-		close(input[0]);
-		close(output[1]);
-		exit(0);
+		exit(-1);
 	}
 	close(input[0]);
 	close(output[1]);
