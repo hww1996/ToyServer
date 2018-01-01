@@ -4,8 +4,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <signal.h>
 
 int main() {
+    sigset_t mask_sig_set;
+    sigaddset(&mask_sig_set,SIGPIPE);
+    sigprocmask(SIG_BLOCK,&mask_sig_set,NULL);
     int sock_fd=make_server(1111);
     if(sock_fd<0)
         exit(-1);
