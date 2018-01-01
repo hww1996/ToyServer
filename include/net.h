@@ -4,7 +4,6 @@
 #include<fcntl.h>
 #include<unistd.h>
 #include<cstring>
-using namespace std;
 
 void *response_to_client(const CharContent &content,int connfd);
 

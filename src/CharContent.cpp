@@ -5,7 +5,6 @@
 #include<vector>
 
 #include"CharContent.h"
-using namespace std;
 
 
 CharContent &CharContent::operator=(const CharContent &cc){
@@ -116,8 +115,8 @@ size_t CharContent::find(const CharContent &cc,size_t pos){
 	return this->find(cc.m,cc.size,pos);
 }
 
-vector<CharContent> CharContent::split(const CharContent &s){
-	vector<CharContent> ans;
+std::vector<CharContent> CharContent::split(const CharContent &s){
+	std::vector<CharContent> ans;
 	size_t start=0,pos=0;
 	while((pos=this->find(s,start))!=this->npos){
 		if(pos>start)

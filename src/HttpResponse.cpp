@@ -2,7 +2,6 @@
 #include"CharContent.h"
 #include <time.h>
 
-using namespace std;
 
 CharContent HttpResponse::response_content(CharContent code){
 	Response response;

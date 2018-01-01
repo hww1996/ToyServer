@@ -17,7 +17,6 @@
 #include"CharContent.h"
 #include"Epoll.h"
 
-using namespace std;
 
 bool CGI::execv_cgi(Request request,Response *response){
 	pid_t pid;
@@ -38,7 +37,7 @@ bool CGI::execv_cgi(Request request,Response *response){
         	close(input[0]);
 		char *exec_name= this->_name.c_str();
 		char *exec_path_name[2]={exec_name,NULL};
-		unordered_set<CharContent,hashFunc,EqualFunc> cgi_key{
+		std::unordered_set<CharContent,hashFunc,EqualFunc> cgi_key{
 				"REQUEST_METHOD",
 				"CONTENT_TYPE",
 				"CONTENT_LENGTH",
@@ -207,7 +206,7 @@ bool CGI::CheckCGI(CharContent cgi_string,Response *response){
 	if(cgi_string.length()==0)
 		return false;
 	bool one_line_space=false;
-	vector<CharContent> headers_line;
+	std::vector<CharContent> headers_line;
 	size_t pos=0,start=0;
 	while((pos=cgi_string.find("\n",1,start))!=cgi_string.npos){
 		CharContent temp=cgi_string.subCharContent(start,pos-start);
@@ -224,7 +223,7 @@ bool CGI::CheckCGI(CharContent cgi_string,Response *response){
 	response->Entity=cgi_string.subCharContent(pos+1,cgi_string.length()-pos-1);
 	return this->check_header(headers_line,response);
 }
-bool CGI::check_header(vector<CharContent> header_list,Response *response){
+bool CGI::check_header(std::vector<CharContent> header_list,Response *response){
 	size_t start_index=0;
 	if(header_list.empty())
 		return false;
@@ -252,7 +251,7 @@ bool CGI::check_header(vector<CharContent> header_list,Response *response){
 	return true;
 }
 bool CGI::check_first_line(CharContent first_line,Response *response){
-	vector<CharContent> string_list;
+	std::vector<CharContent> string_list;
 	string_list=first_line.split(" ");
 	if(string_list.size()<3)
 		return false;

@@ -11,7 +11,6 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include<cstring>
-using namespace std;
 
 void *response_to_client(const CharContent &content,int connfd){
     int step=1024;

@@ -5,7 +5,7 @@
 #include<cstring>
 #include<cstdlib>
 #include<vector>
-using namespace std;
+
 
 
 class CharContent{
@@ -87,7 +87,7 @@ public:
 
     size_t find(const CharContent &cc,size_t pos=0);
 
-    vector<CharContent> split(const CharContent &s);
+    std::vector<CharContent> split(const CharContent &s);
 
     CharContent strip(const CharContent &s);
 

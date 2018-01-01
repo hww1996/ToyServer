@@ -5,7 +5,6 @@
 #include"HttpStruct.h"
 
 #include<unordered_map>
-using namespace std;
 
 class HttpResponse{
 public:
@@ -61,7 +60,7 @@ public:
     virtual ~HttpResponse(){}
 private:
     CharContent make_header(Response *response);
-    unordered_map<CharContent,CharContent,hashFunc,EqualFunc>
+    std::unordered_map<CharContent,CharContent,hashFunc,EqualFunc>
             response_code_map;
 };
 

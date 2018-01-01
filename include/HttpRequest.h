@@ -4,7 +4,6 @@
 #include<unordered_set>
 #include"CharContent.h"
 #include"HttpStruct.h"
-using namespace std;
 
 
 class HttpRequest{
@@ -17,8 +16,8 @@ public:
 private:
     bool handle_first_line(CharContent line,Request *ret);
     bool handle_headers(CharContent line,Request *ret);
-    unordered_set<CharContent,hashFunc,EqualFunc> _method;
-    unordered_set<CharContent,hashFunc,EqualFunc> _protocol;
+    std::unordered_set<CharContent,hashFunc,EqualFunc> _method;
+    std::unordered_set<CharContent,hashFunc,EqualFunc> _protocol;
     CharContent request;
 };
 

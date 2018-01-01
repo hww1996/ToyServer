@@ -5,7 +5,6 @@
 #include"HttpStruct.h"
 #include<vector>
 
-using namespace std;
 
 
 /*
@@ -45,7 +44,7 @@ private:
     bool document_iter(CharContent uri,Response *response,CharContent file_path);
     bool file_iter(Response *response,CharContent file_path);
     int _conndfd;
-    vector<map_item> url_maps;
+    std::vector<map_item> url_maps;
 };
 
 

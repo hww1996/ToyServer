@@ -4,7 +4,6 @@
 #include"CharContent.h"
 #include"HttpStruct.h"
 #include"HttpRequest.h"
-using namespace std;
 
 bool HttpRequest::handle_request(Request *ret){
 	size_t entity_pos=0;
@@ -13,7 +12,7 @@ bool HttpRequest::handle_request(Request *ret){
 	}
 	entity_pos+=4;
 	ret->Entity=request.subCharContent(entity_pos,request.length()-entity_pos);
-	vector<CharContent> string_list=request.split("\r\n");
+	std::vector<CharContent> string_list=request.split("\r\n");
 	if(string_list.empty())
 		return false;
 	if(!handle_first_line(string_list[0],ret))
@@ -27,7 +26,7 @@ bool HttpRequest::handle_request(Request *ret){
 }
 
 bool HttpRequest::handle_first_line(CharContent line,Request *ret){
-	vector<CharContent> string_list=line.split(" ");
+	std::vector<CharContent> string_list=line.split(" ");
 	if(string_list.size()<3)
 		return false;
 	CharContent method(""),uri(""),protocol("");

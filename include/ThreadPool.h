@@ -7,7 +7,6 @@
 #include<deque>
 #include<vector>
 
-using namespace std;
 
 
 struct Task{
@@ -31,7 +30,7 @@ public:
         pthread_cond_init(&not_empty,NULL);
         pthread_cond_init(&not_full,NULL);
         pthread_mutex_init(&mlock,NULL);
-        threads=vector<pthread_t>(tc,0);
+        threads=std::vector<pthread_t>(tc,0);
         for(size_t i=0;i<tc;i++){
             pthread_create(&threads[i],NULL,thread_function,NULL);
         }
@@ -89,16 +88,16 @@ private:
         }
         pthread_exit(NULL);
     }
-    static deque<Task> thread_queue;
+    static std::deque<Task> thread_queue;
     static size_t queue_size;
     static size_t threads_size;
     static bool is_running;
-    vector<pthread_t> threads;
+    std::vector<pthread_t> threads;
     static pthread_cond_t not_full;
     static pthread_cond_t not_empty;
     static pthread_mutex_t mlock;
 };
-deque<Task> ThreadPool::thread_queue;
+std::deque<Task> ThreadPool::thread_queue;
 size_t ThreadPool::queue_size;
 size_t ThreadPool::threads_size;
 bool ThreadPool::is_running;

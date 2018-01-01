@@ -9,8 +9,6 @@
 #include<unistd.h>
 #include<vector>
 
-using namespace std;
-
 int source::resource_find(Request request,Response *response){
 	size_t i=0;
 	size_t pos=0;
@@ -43,7 +41,7 @@ int source::resource_find(Request request,Response *response){
 }
 
 bool source::exec_cgi(Request request,Response *response,CharContent file_path){
-	vector<CharContent> string_list=file_path.split("/");
+	std::vector<CharContent> string_list=file_path.split("/");
 	if(string_list.empty())
 		return false;
 	CGI cgi(file_path,string_list[string_list.size()-1],this->_conndfd);
@@ -100,6 +98,7 @@ bool source::file_iter(Response *response,CharContent file_path){
 		return false;
 	ssize_t read_size=-1;
 	read_size=read(file_fd,response->Entity.c_str(),response->Entity.length());
+	close(file_fd);
 	if(read_size<0)
 		return false;
 	return true;
