@@ -22,7 +22,7 @@ public:
         size=cc.size;
         m_length=cc.m_length;
         memset(m,'\0',m_length);
-        strncpy(m,cc.m,cc.m_length);
+        memmove(m,cc.m,cc.m_length);
     }
     CharContent(const char *cc,size_t n){
         if(n==0){
@@ -36,9 +36,7 @@ public:
             m=new char [m_length];
             size=n;
             memset(m,'\0',m_length);
-            for(size_t i=0;i<n;i++){
-                m[i]=cc[i];
-            }
+            memmove(m,cc,n);
             return;
         }
     }
@@ -55,10 +53,8 @@ public:
             m=new char [m_length];
             size=n;
             memset(m,'\0',m_length);
-            for(size_t i=0;i<n;i++){
-                m[i]=cc[i];
-            }
-            return;
+            memmove(m,cc,n);
+			return;
         }
     }
     CharContent(size_t n){

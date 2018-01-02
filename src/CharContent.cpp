@@ -8,12 +8,17 @@
 
 
 CharContent &CharContent::operator=(const CharContent &cc){
-	delete[] m;
-	size=cc.size;
-	m_length=cc.m_length;
-	m=new char [m_length];
-	memset(m,'\0',m_length);
-	strncpy(m,cc.m,size);
+    size_t new_mem_size=cc.size;
+    size_t new_mem_length=cc.m_length;
+
+    char *new_mem=new char [new_mem_length];
+    memset(new_mem,0,new_mem_length);
+    memmove(new_mem,cc.m,new_mem_size);
+
+    delete[] m;
+    m=new_mem;
+    size=new_mem_size;
+    m_length=new_mem_length;
 	return *this;
 }
 
@@ -48,28 +53,24 @@ void CharContent::clear(){
 }
 void CharContent::append(const char *s,size_t n){
 	if(n<m_length-size){
-		size_t j=size;
-		for(size_t i=0;i<n;i++){
-			m[j++]=s[i];
-		}
+        char *dest_mem=m+size;
+        memmove(dest_mem,s,n);
 		size=size+n;
 		return;
 	}
 	size_t new_size=(n+size)*2;
 	char *new_ptr=new char [new_size];
 	memset(new_ptr,'\0',new_size);
-	size_t i=0;
-	for(;i<size;i++){
-		new_ptr[i]=m[i];
-	}
-	size_t j=0;
-	for(;j<n;j++){
-		new_ptr[i++]=s[j];
-	}
-	size=i;
-	m_length=new_size;
-	delete[] m;
-	m=new_ptr;
+
+    memmove(new_ptr,this->m,this->size);
+    char *dest_mem=new_ptr+this->size;
+
+    memmove(dest_mem,s,n);
+    delete[] m;
+    size+=n;
+    m_length=new_size;
+    m=new_ptr;
+    return;
 }
 void CharContent::append(const CharContent &cc){
 	return this->append(cc.m,cc.size);
