@@ -71,7 +71,7 @@ void *handle_accept(void *arg){
     CharContent ret_request;
     char buf[1024]={'\0'};
     while(true){
-        ret_num=epoll_wait(epoll_fd,&event_ret,1,3000);
+        ret_num=epoll_wait(epoll_fd,&event_ret,1,15000);
         if(ret_num<1){
             break;
         }
@@ -81,16 +81,14 @@ void *handle_accept(void *arg){
             if(read_size<=0){
                 break;
             }
-            if(read_size<sizeof(buf)){
-                ret_request.append(buf,read_size);
-                break;
-            }
             ret_request.append(buf,read_size);
             memset(buf,'\0',sizeof(buf));
+            if(ret_request.find(CharContent("\r\n\r\n"))!=ret_request.npos){
+                break;
+            }
         }
     }
     write(STDOUT_FILENO,ret_request.c_str(),ret_request.length());
-    e.make_ctl(EPOLL_CTL_DEL,connfd,EPOLLIN);
     if(ret_num<0){
         CharContent res_content(http_response.response_content(CharContent("500")));
         char v_log[200]={'\0'};
@@ -101,7 +99,7 @@ void *handle_accept(void *arg){
     if(read_size<0){
         CharContent res_content(http_response.response_content(CharContent("500")));
         char v_log[200]={'\0'};
-        snprintf(v_log,sizeof(v_log),"ret_num %lu\n",read_size);
+        snprintf(v_log,sizeof(v_log),"read_size %lu\n",read_size);
         log(v_log);
         return response_to_client(res_content,connfd);
     }
@@ -113,6 +111,46 @@ void *handle_accept(void *arg){
         log(v_log);
         return response_to_client(res_content,connfd);
     }
+    if(request.headers.find(CharContent("Content-Length"))!=request.headers.end()){
+        size_t all=0;
+        sscanf(request.headers["Content-Length"].c_str(),"%lu",&all);
+        int epoll_ret_num=-1;
+        ssize_t entity_read_size=0;
+        char entity_buf[1024]={'\0'};
+        while(true){
+            if(all<=request.Entity.length()){
+                break;
+            }
+            epoll_ret_num=epoll_wait(epoll_fd,&event_ret,1,20000);
+            if(epoll_ret_num<1){
+                break;
+            }
+            int ret_fd=event_ret.data.fd;
+            if(ret_fd==connfd&&(event_ret.events&EPOLLIN)){
+                entity_read_size=read(connfd,entity_buf,sizeof(entity_buf));
+                if(entity_read_size<=0){
+                    break;
+                }
+                request.Entity.append(entity_buf,entity_read_size);
+                memset(entity_buf,'\0',sizeof(entity_buf));
+            }
+        }
+        if(epoll_ret_num<0){
+            CharContent res_content(http_response.response_content(CharContent("500")));
+            char v_log[200]={'\0'};
+            snprintf(v_log,sizeof(v_log),"epoll_ret_num %d\n",epoll_ret_num);
+            log(v_log);
+            return response_to_client(res_content,connfd);
+        }
+        if(entity_read_size<0){
+            CharContent res_content(http_response.response_content(CharContent("500")));
+            char v_log[200]={'\0'};
+            snprintf(v_log,sizeof(v_log),"entity_read_size %lu\n",entity_read_size);
+            log(v_log);
+            return response_to_client(res_content,connfd);
+        }
+    }
+    e.make_ctl(EPOLL_CTL_DEL,connfd,EPOLLIN);
     source server_resource(connfd);
     int resource_find_ret=server_resource.resource_find(request,&response);
     /*

@@ -4,7 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <signal.h>
+#include<signal.h>
 
 int main() {
     sigset_t mask_sig_set;
