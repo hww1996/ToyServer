@@ -36,3 +36,5 @@
       CharContent file_path;
       int read_type; 
     };
+#### 注意：
+只能使用g++编译，clang编译不过。
