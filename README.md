@@ -5,7 +5,14 @@
 下次应该会改变一些算法，如使用kmp算法来匹配字符串等。修正一些bug等等。
 
 #### 编译:
+1.makefile编译
 
+	$ make
+2.cmake编译（在根目录下）
+
+	$ mkdir build
+	$ cd build
+	$ cmake ..
 	$ make
 
 #### 使用：
@@ -38,3 +45,4 @@
     };
 #### 注意：
 只能使用g++编译，clang编译不过。
+
