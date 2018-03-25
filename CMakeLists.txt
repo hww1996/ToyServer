@@ -1,0 +1,7 @@
+project(TOYSERVER)
+cmake_minimum_required(VERSION 2.8)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+include_directories("include")
+set(src_list main.cpp)
+aux_source_directory("src" src_file)
+add_executable(ToyServer ${src_file} ${src_list})
